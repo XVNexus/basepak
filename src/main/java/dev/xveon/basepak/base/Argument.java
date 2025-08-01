@@ -3,16 +3,17 @@ package dev.xveon.basepak.base;
 import java.util.*;
 
 public class Argument {
-    private final Datatype datatype;
-    private final Object value;
+    private Datatype datatype;
+    private Object value;
 
     public Argument(Object value) {
-        if (value == null) {
-            throw new IllegalArgumentException("Argument value cannot be null.");
-        } else if (value instanceof Argument valueArg) {
+        if (value instanceof Argument valueArg) {
             value = valueArg.value;
         }
-        if (value instanceof Boolean) {
+        if (value == null) {
+            this.datatype = Datatype.NUL;
+            this.value = null;
+        } else if (value instanceof Boolean) {
             this.datatype = Datatype.BOL;
             this.value = value;
         } else if (value instanceof Integer) {
@@ -52,36 +53,14 @@ public class Argument {
         }
     }
 
-    public static Argument def(Datatype datatype) {
-        return new Argument(switch (datatype) {
-            case BOL -> false;
-            case I32 -> 0;
-            case I64 -> 0L;
-            case F32 -> 0f;
-            case F64 -> 0D;
-            case CHR -> ' ';
-            case STR -> "";
-            case VEC -> new ArrayList<>();
-            case MAP -> new HashMap<>();
-        });
-    }
-
-    public void enforceType(Datatype datatype, String functionName, String argumentName) {
-        if (this.datatype != datatype) {
-            throw new IllegalArgumentException(datatype + " is not a valid argument type for '" + functionName + ":" + argumentName + "'");
-        }
-    }
-
-    public Object getEnforce(Datatype datatype, String functionName, String argumentName) {
-        if (this.datatype == datatype) {
-            return value;
-        } else {
-            throw new IllegalArgumentException(datatype + " is not a valid argument type for '" + functionName + ":" + argumentName + "'");
-        }
+    public Argument(Datatype datatype) {
+        this.datatype = datatype;
+        this.value = getDefault(datatype);
     }
 
     public Argument to(Datatype datatype) {
         return switch (this.datatype) {
+            case NUL -> nulTo(datatype);
             case BOL -> bolTo(datatype);
             case I32 -> i32To(datatype);
             case I64 -> i64To(datatype);
@@ -94,8 +73,13 @@ public class Argument {
         };
     }
 
+    private Argument nulTo(Datatype datatype) {
+        return new Argument(datatype);
+    }
+
     private Argument bolTo(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> value;
             case I32 -> (boolean) value ? 1 : 0;
             case I64 -> (boolean) value ? 1L : 0L;
@@ -114,6 +98,7 @@ public class Argument {
 
     private Argument i32To(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> (int) value > 0;
             case I32 -> value;
             case I64 -> (long) (int) value;
@@ -132,6 +117,7 @@ public class Argument {
 
     private Argument i64To(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> (long) value > 0;
             case I32 -> (int) (long) value;
             case I64 -> value;
@@ -150,6 +136,7 @@ public class Argument {
 
     private Argument f32To(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> (float) value > 0f;
             case I32 -> (int) (float) value;
             case I64 -> (long) (float) value;
@@ -168,6 +155,7 @@ public class Argument {
 
     private Argument f64To(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> (double) value > 0f;
             case I32 -> (int) (double) value;
             case I64 -> (long) (double) value;
@@ -186,6 +174,7 @@ public class Argument {
 
     private Argument chrTo(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> (char) value > ' ';
             case I32 -> (int) (char) value - 32;
             case I64 -> (long) (char) value - 32;
@@ -204,6 +193,7 @@ public class Argument {
 
     private Argument strTo(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> !((String) value).isEmpty();
             case I32 -> ((String) value).length();
             case I64 -> (long) ((String) value).length();
@@ -226,6 +216,7 @@ public class Argument {
     @SuppressWarnings("unchecked")
     private Argument vecTo(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> !((ArrayList<Argument>) value).isEmpty();
             case I32 -> ((ArrayList<Argument>) value).size();
             case I64 -> (long) ((ArrayList<Argument>) value).size();
@@ -248,6 +239,7 @@ public class Argument {
     @SuppressWarnings("unchecked")
     private Argument mapTo(Datatype datatype) {
         return new Argument(switch (datatype) {
+            case NUL -> null;
             case BOL -> !((HashMap<Argument, Argument>) value).isEmpty();
             case I32 -> ((HashMap<Argument, Argument>) value).size();
             case I64 -> (long) ((HashMap<Argument, Argument>) value).size();
@@ -268,8 +260,51 @@ public class Argument {
         return value;
     }
 
+    public boolean enforceType(Datatype datatype, String functionName, String argumentName) {
+        if (this.datatype == Datatype.NUL) {
+            this.datatype = datatype;
+            this.value = getDefault(datatype);
+            return true;
+        } else if (this.datatype != datatype) {
+            return false;
+        }
+        return false;
+    }
+
+    public Object getValueEnforced(Datatype datatype, String functionName, String argumentName) {
+        if (!enforceType(datatype, functionName, argumentName)) {
+            throw new IllegalArgumentException(datatype + " is not a valid argument type for '" + functionName + ":" + argumentName + "'");
+        }
+        return value;
+    }
+
+    public Object getValueEnforced(Datatype datatype, Object defaultValue, String functionName, String argumentName) {
+        if (this.datatype == Datatype.NUL) {
+            return defaultValue;
+        }
+        if (!enforceType(datatype, functionName, argumentName)) {
+            throw new IllegalArgumentException(datatype + " is not a valid argument type for '" + functionName + ":" + argumentName + "'");
+        }
+        return value;
+    }
+
+    public static Object getDefault(Datatype datatype) {
+        return switch (datatype) {
+            case NUL -> null;
+            case BOL -> false;
+            case I32 -> 0;
+            case I64 -> 0L;
+            case F32 -> 0f;
+            case F64 -> 0D;
+            case CHR -> ' ';
+            case STR -> "";
+            case VEC -> new ArrayList<>();
+            case MAP -> new HashMap<>();
+        };
+    }
+
     @Override
     public String toString() {
-        return this.datatype.toString().toLowerCase() + ":" + this.value.toString();
+        return this.datatype.toString().toLowerCase() + (this.value != null ? ":" + this.value.toString() : "");
     }
 }

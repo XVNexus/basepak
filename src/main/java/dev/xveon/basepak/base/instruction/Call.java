@@ -1,18 +1,15 @@
 package dev.xveon.basepak.base.instruction;
 
-import dev.xveon.basepak.base.Argument;
-import dev.xveon.basepak.base.Context;
-import dev.xveon.basepak.base.Datatype;
-import dev.xveon.basepak.base.Instruction;
+import dev.xveon.basepak.base.*;
 
 import java.util.ArrayList;
 
 public class Call extends Instruction {
     @Override
     @SuppressWarnings("unchecked")
-    public void Execute(Context context, Argument... arguments) {
-        String funName = (String) arguments[0].getEnforce(Datatype.STR, getName(), "fun_name");
-        ArrayList<Argument> argList = (ArrayList<Argument>) arguments[1].getEnforce(Datatype.VEC, getName(), "arg_list");
+    public void Execute(Context context, Arglist arglist) {
+        String funName = (String) arglist.get(0).getValueEnforced(Datatype.STR, getName(), "fun_name");
+        ArrayList<Argument> argList = (ArrayList<Argument>) arglist.get(1).getValueEnforced(Datatype.VEC, getName(), "arg_list");
 
         Instruction[] instructions = context.getFunctionTable().get(funName).getInstructions();
         for (int i = 0; i < instructions.length; i++) {

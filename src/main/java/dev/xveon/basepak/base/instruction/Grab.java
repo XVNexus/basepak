@@ -1,14 +1,11 @@
 package dev.xveon.basepak.base.instruction;
 
-import dev.xveon.basepak.base.Argument;
-import dev.xveon.basepak.base.Context;
-import dev.xveon.basepak.base.Datatype;
-import dev.xveon.basepak.base.Instruction;
+import dev.xveon.basepak.base.*;
 
 public class Grab extends Instruction {
     @Override
-    public void Execute(Context context, Argument... arguments) {
-        String bspPath = (String) arguments[0].getEnforce(Datatype.STR, getName(), "bsp_path");
+    public void Execute(Context context, Arglist arglist) {
+        String bspPath = (String) arglist.get(0).getValueEnforced(Datatype.STR, getName(), "bsp_path");
 
         context.grab(bspPath);
     }
