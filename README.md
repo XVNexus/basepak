@@ -23,20 +23,14 @@ on_event:
 
 print_literals:
     plog info bol:true
-    plog info i08:-42
-    plog info i16:-42
-    plog info i32:-42
-    plog info i64:-42
-    plog info u08:42
-    plog info u16:42
-    plog info u32:42
-    plog info u64:42
+    plog info i32:42
+    plog info i64:42
     plog info f32:6.9
     plog info f64:6.9
     plog info chr:A
-    plog info str:'Hello, world!'
-    plog info vec(i08):[1,2,4,8]
-    plog info map(str,i08):['one',1,'two',2,'four',4,'eight',8]
+    plog info vec(chr):'Hello, world!'
+    plog info vec(i32):[1,2,4,8]
+    plog info map(vec(chr),i32):['one',1,'two',2,'four',4,'eight',8]
 
 ###
 multi-line
