@@ -8,7 +8,7 @@ public class Arglist {
     }
 
     public Argument get(int index) {
-        return index < arguments.length ? arguments[index] : new Argument(null);
+        return index < arguments.length ? arguments[index] : Argument.fromValue(null);
     }
 
     public int getSize() {

@@ -49,10 +49,10 @@ comment
 
 ## Instruction Set
 - `grab <bsp_path>`
-- `goto <ins_index>`
+- `goto <ins_index> [reg_condition]`
 - `call <ins_index> [arg_list...]`
 - `move [reg_from] <reg_to>`
 - `calc <operation> <reg_a> [reg_b]`
 - `wait <delay>`
-- `stop [scope]`
-- `plog [level] [message]`
+- `stop <scope>`
+- `plog <level> <message>`

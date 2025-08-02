@@ -16,7 +16,7 @@ public class Test {
         for (var i = 0; i < types.size(); i++) {
             for (var j = 0; j < types.size(); j++) {
                 var fromVal = new Argument(types.get(i));
-                var toVal = fromVal.to(types.get(j));
+                var toVal = fromVal.toDatatype(types.get(j));
                 System.out.println(fromVal + " => " + toVal);
             }
         }

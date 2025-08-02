@@ -12,7 +12,7 @@ public class StopInstruction extends Instruction {
 
     @Override
     public void execute(Context context) {
-        String scope = (String) arglist.get(0).getValueEnforced(Datatype.STR, "trd", getName(), "scope");
+        String scope = (String) arglist.get(0).getValueEnforced(Datatype.STR, getName(), "scope");
         switch (scope) {
             case "fun" -> context.pullPointer();
             case "trd" -> context.resetPointer();

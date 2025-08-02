@@ -6,59 +6,53 @@ public class Argument {
     private Datatype datatype;
     private Object value;
 
-    public Argument(Object value) {
+    private Argument(Datatype datatype, Object value) {
+        this.datatype = datatype;
+        this.value = value;
+    }
+
+    public static Argument fromValue(Object value) {
         if (value instanceof Argument valueArg) {
             value = valueArg.value;
         }
         if (value == null) {
-            this.datatype = Datatype.NUL;
-            this.value = null;
+            return new Argument(Datatype.NUL, null);
         } else if (value instanceof Boolean) {
-            this.datatype = Datatype.BOL;
-            this.value = value;
+            return new Argument(Datatype.BOL, value);
         } else if (value instanceof Integer) {
-            this.datatype = Datatype.I32;
-            this.value = value;
+            return new Argument(Datatype.I32, value);
         } else if (value instanceof Long) {
-            this.datatype = Datatype.I64;
-            this.value = value;
+            return new Argument(Datatype.I64, value);
         } else if (value instanceof Float) {
-            this.datatype = Datatype.F32;
-            this.value = value;
+            return new Argument(Datatype.F32, value);
         } else if (value instanceof Double) {
-            this.datatype = Datatype.F64;
-            this.value = value;
+            return new Argument(Datatype.F64, value);
         } else if (value instanceof Character) {
-            this.datatype = Datatype.CHR;
-            this.value = value;
+            return new Argument(Datatype.CHR, value);
         } else if (value instanceof String) {
-            this.datatype = Datatype.STR;
-            this.value = value;
+            return new Argument(Datatype.STR, value);
         } else if (value instanceof List<?> list) {
-            this.datatype = Datatype.VEC;
             ArrayList<Argument> vec = new ArrayList<>();
-            this.value = vec;
             for (Object item : list) {
-                vec.add(new Argument(item));
+                vec.add(Argument.fromValue(item));
             }
+            return new Argument(Datatype.VEC, vec);
         } else if (value instanceof Map<?, ?> valueMap) {
-            this.datatype = Datatype.MAP;
             HashMap<Argument, Argument> map = new HashMap<>();
-            this.value = map;
             for (Object key : valueMap.keySet()) {
-                map.put(new Argument(key), new Argument(valueMap.get(key)));
+                map.put(Argument.fromValue(key), Argument.fromValue(valueMap.get(key)));
             }
+            return new Argument(Datatype.MAP, map);
         } else {
             throw new IllegalArgumentException("Argument value '" + value + "' is not of a recognized datatype.");
         }
     }
 
-    public Argument(Datatype datatype) {
-        this.datatype = datatype;
-        this.value = getDefault(datatype);
+    public static Argument fromDatatype(Datatype datatype) {
+        return new Argument(datatype, getDefault(datatype));
     }
 
-    public Argument to(Datatype datatype) {
+    public Argument toDatatype(Datatype datatype) {
         return switch (this.datatype) {
             case NUL -> nulTo(datatype);
             case BOL -> bolTo(datatype);
@@ -74,11 +68,11 @@ public class Argument {
     }
 
     private Argument nulTo(Datatype datatype) {
-        return new Argument(datatype);
+        return Argument.fromValue(datatype);
     }
 
     private Argument bolTo(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> value;
             case I32 -> (boolean) value ? 1 : 0;
@@ -97,7 +91,7 @@ public class Argument {
     }
 
     private Argument i32To(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> (int) value > 0;
             case I32 -> value;
@@ -116,7 +110,7 @@ public class Argument {
     }
 
     private Argument i64To(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> (long) value > 0;
             case I32 -> (int) (long) value;
@@ -135,7 +129,7 @@ public class Argument {
     }
 
     private Argument f32To(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> (float) value > 0f;
             case I32 -> (int) (float) value;
@@ -154,7 +148,7 @@ public class Argument {
     }
 
     private Argument f64To(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> (double) value > 0f;
             case I32 -> (int) (double) value;
@@ -173,7 +167,7 @@ public class Argument {
     }
 
     private Argument chrTo(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> (char) value > ' ';
             case I32 -> (int) (char) value - 32;
@@ -192,7 +186,7 @@ public class Argument {
     }
 
     private Argument strTo(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> !((String) value).isEmpty();
             case I32 -> ((String) value).length();
@@ -215,7 +209,7 @@ public class Argument {
 
     @SuppressWarnings("unchecked")
     private Argument vecTo(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> !((ArrayList<Argument>) value).isEmpty();
             case I32 -> ((ArrayList<Argument>) value).size();
@@ -238,7 +232,7 @@ public class Argument {
 
     @SuppressWarnings("unchecked")
     private Argument mapTo(Datatype datatype) {
-        return new Argument(switch (datatype) {
+        return Argument.fromValue(switch (datatype) {
             case NUL -> null;
             case BOL -> !((HashMap<Argument, Argument>) value).isEmpty();
             case I32 -> ((HashMap<Argument, Argument>) value).size();

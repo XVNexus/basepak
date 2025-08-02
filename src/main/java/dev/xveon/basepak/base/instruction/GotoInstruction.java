@@ -10,7 +10,10 @@ public class GotoInstruction extends Instruction {
     @Override
     public void execute(Context context) {
         int insIndex = (int) arglist.get(0).getValueEnforced(Datatype.I32, getName(), "ins_index");
-        context.setPointer(insIndex);
+        String regCondition = (String) arglist.get(1).getValueEnforced(Datatype.STR, "", getName(), "reg_condition");
+        if (regCondition.isEmpty() || (boolean) context.getRegister(regCondition).toDatatype(Datatype.BOL).getValue()) {
+            context.setPointer(insIndex);
+        }
     }
 
     @Override

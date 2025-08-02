@@ -97,4 +97,8 @@ public class Context {
     public long getTickTime() {
         return tickTime;
     }
+
+    public void printLog(Severity severity, String message) {
+        // TODO: PRINT TO GAME LOGS AND CHAT
+    }
 }
