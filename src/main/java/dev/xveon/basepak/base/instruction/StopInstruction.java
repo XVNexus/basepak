@@ -14,9 +14,13 @@ public class StopInstruction extends Instruction {
     public void execute(Context context) {
         String scope = (String) arglist.get(0).getValueEnforced(Datatype.STR, getName(), "scope");
         switch (scope) {
-            case "fun" -> context.pullPointer();
-            case "trd" -> context.resetPointer();
-            case "bsp" -> {
+            case "fun" -> {
+                if (!context.pullPointer()) {
+                    context.resetPointer();
+                }
+            }
+            case "eve" -> context.resetPointer();
+            case "pak" -> {
                 // TODO: TERMINATE CONTEXT
             }
         }

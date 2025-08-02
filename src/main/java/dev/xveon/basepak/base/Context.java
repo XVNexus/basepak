@@ -86,12 +86,22 @@ public class Context {
         setPointer(labelTable.get(label));
     }
 
-    public void pushPointer() {
-        pointerStack.add(0, pointer);
+    public boolean pushPointer() {
+        if (pointer > POINTER_DEFAULT) {
+            pointerStack.add(0, pointer);
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    public void pullPointer() {
-        pointer = pointerStack.remove(0);
+    public boolean pullPointer() {
+        if (!pointerStack.isEmpty()) {
+            pointer = pointerStack.remove(0);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public long getTickTime() {
