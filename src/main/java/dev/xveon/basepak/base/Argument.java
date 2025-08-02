@@ -272,6 +272,9 @@ public class Argument {
     }
 
     public Object getValueEnforced(Datatype datatype, String functionName, String argumentName) {
+        if (this.datatype == Datatype.NUL) {
+            throw new IllegalArgumentException("Argument value is null.");
+        }
         if (!enforceType(datatype, functionName, argumentName)) {
             throw new IllegalArgumentException(datatype + " is not a valid argument type for '" + functionName + ":" + argumentName + "'");
         }
