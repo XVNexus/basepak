@@ -2,41 +2,64 @@ package dev.xveon.basepak.base;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-// TODO: NUL KEYWORD
 
 public class Context {
-    private Map<String, Argument> registerTable = new HashMap<>();
-    private HashMap<String, Function> functionTable = new HashMap<>();
-    private ArrayList<Function> functionQueue = new ArrayList<>();
-    private ArrayList<Instruction> instructionQueue = new ArrayList<>();
-    private ArrayList<Arglist> arglistQueue = new ArrayList<>();
-    private ArrayList<Integer> waitTicks = new ArrayList<>();
-    private ArrayList<List<Instruction>> waitBuffer = new ArrayList<>();
+    public static final int POINTER_DEFAULT = -2;
+
+    private HashMap<String, Argument> registerTable = new HashMap<>();
+    private HashMap<String, Integer> labelTable = new HashMap<>();
+    private ArrayList<Instruction> instructionTable = new ArrayList<>();
+    private int pointer = POINTER_DEFAULT;
+    private ArrayList<Integer> pointerStack = new ArrayList<>();
     private long tickTime = 0;
+    private ArrayList<Integer> eventQueue = new ArrayList<>();
+    private ArrayList<Integer> delayQueue = new ArrayList<>();
+    private int eventIndex = 0;
 
-    public Context(Function[] functions) {
-        for (Function function : functions) {
-            this.functionTable.put(function.getName(), function);
-        }
+    public void loadFile(String path) {
+        // TODO: LOAD INSTRUCTIONS AND INDEX TABLE FROM FILE
     }
 
-    public void loadFile(String bspPath) {
-        // TODO: GRAB ALL FUNCTIONS FROM SCRIPT FILE
-    }
-
-    public void tick() {
-        while (!instructionQueue.isEmpty()) {
-            instructionQueue.remove(0).Execute(arglistQueue.remove(0), functionQueue.remove(0), this);
+    public void doTick() {
+        for (eventIndex = eventQueue.size() - 1; eventIndex >= 0; eventIndex--) {
+            if (delayQueue.get(eventIndex) == 0) {
+                delayQueue.remove(eventIndex);
+                pointer = eventQueue.remove(eventIndex);
+                runThread();
+            } else {
+                delayQueue.set(eventIndex, delayQueue.get(eventIndex) - 1);
+            }
         }
         tickTime++;
-        // TODO: UPDATE WAITS
+    }
+
+    public void runThread() {
+        this.pointer--;
+        while (pointer > POINTER_DEFAULT) {
+            instructionTable.get(++this.pointer).execute(this);
+        }
+    }
+
+    public void emitEvent(int delay, int pointer) {
+        eventQueue.add(0, pointer);
+        delayQueue.add(0, delay);
+        eventIndex++;
+    }
+
+    public void emitEvent(int pointer) {
+        emitEvent(0, pointer);
+    }
+
+    public void emitEvent(int delay, String label) {
+        emitEvent(delay, labelTable.get(label));
+    }
+
+    public void emitEvent(String label) {
+        emitEvent(0, label);
     }
 
     public Argument getRegister(String name) {
-        return registerTable.getOrDefault(name, new Argument(Datatype.NUL));
+        return registerTable.getOrDefault(name, new Argument(null));
     }
 
     public void setRegister(String name, Argument value) {
@@ -47,29 +70,28 @@ public class Context {
         registerTable.remove(name);
     }
 
-    public Function getFunction(String name) {
-        return functionTable.get(name);
+    public int getPointer() {
+        return pointer;
     }
 
-    public void enqueueInstructions(List<Instruction> instructions, List<Arglist> arglists, Function function) {
-        instructionQueue.addAll(instructions);
-        arglistQueue.addAll(arglists);
-        for (int i = 0; i < instructions.size(); i++) {
-            functionQueue.add(function);
-        }
+    public void setPointer(int pointer) {
+        this.pointer = pointer;
     }
 
-    public void enqueueInstructions(int delay, List<Instruction> instructions) {
-        waitTicks.add(delay);
-        waitBuffer.add(instructions);
+    public void resetPointer() {
+        setPointer(POINTER_DEFAULT);
     }
 
-    public void pushInstructions(List<Instruction> instructions) {
-        instructionQueue.addAll(0, instructions);
+    public void setPointer(String label) {
+        setPointer(labelTable.get(label));
     }
 
-    public void clearInstructions() {
-        instructionQueue.clear();
+    public void pushPointer() {
+        pointerStack.add(0, pointer);
+    }
+
+    public void pullPointer() {
+        pointer = pointerStack.remove(0);
     }
 
     public long getTickTime() {
